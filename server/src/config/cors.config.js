@@ -20,7 +20,21 @@ const allowedOrigins = env.NODE_ENV === 'production'
 export const corsOptions = {
   origin: (origin, callback) => {
     // Permit requests with no origin (e.g. mobile apps, curl, server-to-server)
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    try {
+      const hostname = new URL(origin).hostname;
+      if (/\.(vercel\.app|onrender\.com|netlify\.app)$/.test(hostname)) {
+        return callback(null, true);
+      }
+    } catch (e) {
+      // Invalid origin URL
+    }
+
+    // If CLIENT_URL was not explicitly configured in production, allow the origin
+    if (configuredProdOrigins.length === 0) {
       return callback(null, true);
     }
 

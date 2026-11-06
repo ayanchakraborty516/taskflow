@@ -1,4 +1,16 @@
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+// Normalize API base URL: ensure https and /api path suffix
+const getApiBase = () => {
+  const envUrl = (import.meta.env.VITE_API_URL || '').trim();
+  if (!envUrl) return '/api';
+
+  let cleaned = envUrl.replace(/\/+$/, '');
+  if (!cleaned.endsWith('/api')) {
+    cleaned = `${cleaned}/api`;
+  }
+  return cleaned;
+};
+
+const API_BASE = getApiBase();
 
 const getStorage = (key) => {
   if (typeof window !== 'undefined' && window.localStorage) {
@@ -42,7 +54,14 @@ class ApiClient {
   }
 
   async request(endpoint, options = {}) {
-    const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+    let url = endpoint;
+    if (!endpoint.startsWith('http')) {
+      const normalizedPath = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+      const cleanPath = normalizedPath.startsWith('/api/')
+        ? normalizedPath.replace(/^\/api/, '')
+        : normalizedPath;
+      url = `${API_BASE}${cleanPath}`;
+    }
 
     const headers = {
       'Content-Type': 'application/json',
