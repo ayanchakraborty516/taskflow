@@ -16,7 +16,7 @@ const envSchema = z.object({
   DATABASE_URL: z
     .string()
     .default('postgresql://postgres:postgres@localhost:5432/taskflow?schema=public'),
-  JWT_SECRET: z.string().min(16).default('taskflow_super_secret_jwt_development_key_32_chars'),
+  JWT_SECRET: z.string().default('taskflow_super_secret_jwt_development_key_32_chars'),
   JWT_EXPIRES_IN: z.string().default('7d'),
   COOKIE_SECRET: z.string().default('taskflow_cookie_signing_secret_dev'),
   COOKIE_SAMESITE: z.enum(['lax', 'strict', 'none']).default('lax'),

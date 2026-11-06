@@ -11,10 +11,11 @@ const httpServer = http.createServer(app);
 initSocketServer(httpServer);
 
 const PORT = env.PORT || 5000;
+const HOST = '0.0.0.0';
 
-const server = httpServer.listen(PORT, () => {
-  logger.info(`TaskFlow Server running in ${env.NODE_ENV} mode on port ${PORT}`);
-  logger.info(`API Health endpoint accessible at http://localhost:${PORT}/api/health`);
+const server = httpServer.listen(PORT, HOST, () => {
+  logger.info(`TaskFlow Server running in ${env.NODE_ENV} mode on ${HOST}:${PORT}`);
+  logger.info(`API Health endpoint accessible at http://${HOST}:${PORT}/api/health`);
 });
 
 // Graceful shutdown management
@@ -41,6 +42,7 @@ const gracefulShutdown = async (signal) => {
       logger.info('Graceful shutdown completed successfully.');
       process.exit(0);
     } catch (err) {
+      console.error('Error during graceful shutdown:', err);
       logger.error({ err }, 'Error during graceful shutdown');
       process.exit(1);
     }
@@ -48,6 +50,7 @@ const gracefulShutdown = async (signal) => {
 
   // Force close if graceful shutdown takes too long
   setTimeout(() => {
+    console.error('Graceful shutdown timed out after 10 seconds. Forcing exit.');
     logger.error('Graceful shutdown timed out after 10 seconds. Forcing exit.');
     process.exit(1);
   }, 10000).unref();
@@ -57,10 +60,12 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection detected:', reason);
   logger.error({ reason, promise }, 'Unhandled Rejection detected');
 });
 
 process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception detected! Exiting...', error);
   logger.fatal({ error }, 'Uncaught Exception detected! Exiting...');
   process.exit(1);
 });
